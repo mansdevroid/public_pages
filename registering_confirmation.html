@@ -3,10 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <title>Account confirmed</title>
+
+    <script>
+      (function () {
+        const query = window.location.search || "";
+        const hash = window.location.hash || "";
+
+        const deepLink =
+          "ir.codecomp.dangodong://auth" + query + hash;
+
+        window.location.replace(deepLink);
+
+        setTimeout(() => {
+          document.getElementById("fallback").style.display = "block";
+        }, 1500);
+      })();
+    </script>
   </head>
+
   <body style="font-family: sans-serif; text-align: center; margin-top: 80px;">
     <h1>✅ Registration successful</h1>
-    <p>Your email has been confirmed.</p>
-    <p>You can now return to the app and sign in.</p>
+    <p>If the app does not open automatically, tap below.</p>
+
+    <a id="fallback"
+       href="ir.codecomp.dangodong://auth"
+       style="display:none">
+      Open the app
+    </a>
   </body>
 </html>
