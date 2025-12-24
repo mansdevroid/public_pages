@@ -24,18 +24,27 @@
     <h1>✅ Registration successful</h1>
     <p>Tap the button below to open the app and complete login:</p>
 
-    <a id="openApp"
-       href="#"
-       style="
-         display:inline-block;
-         font-size:18px;
-         padding:12px 24px;
-         background:#3ecf8e;
-         color:white;
-         text-decoration:none;
-         border-radius:6px;"
-    >
+      <button
+        style="
+          font-size:18px;
+          padding:12px 24px;
+          background:#3ecf8e;
+          color:white;
+          border:none;
+          border-radius:6px;
+        "
+        onclick="openApp()"
+      >
       Open the app
-    </a>
+    </button>
+    <script>
+      function openApp() {
+        const query = window.location.search || "";
+        const hash = window.location.hash || "";
+        const deepLink = "ir.codecomp.dangodong://email-confirmation" + query + hash;
+    
+        window.location.href = deepLink;
+      }
+    </script>
   </body>
 </html>
