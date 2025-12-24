@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Account confirmed</title>
 
-    <!-- <script>
+    <script>
       (function () {
         const query = window.location.search || "";
         const hash = window.location.hash || "";
@@ -14,11 +14,17 @@
 
         window.location.replace(deepLink);
 
+        // Delay redirect so page renders
         setTimeout(() => {
-          document.getElementById("fallback").style.display = "block";
+          window.location.href = deepLink;
+        }, 500);
+    
+        // Show fallback after 1.5s
+        setTimeout(() => {
+          document.getElementById("fallback").style.display = "inline-block";
         }, 1500);
       })();
-    </script> -->
+    </script>
   </head>
 
   <body style="font-family: sans-serif; text-align: center; margin-top: 80px;">
