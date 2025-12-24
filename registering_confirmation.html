@@ -10,7 +10,7 @@
         const hash = window.location.hash || "";
 
         const deepLink =
-          "ir.codecomp.dangodong://auth" + query + hash;
+          "ir.codecomp.dangodong://email-confirmation" + query + hash;
 
         window.location.replace(deepLink);
 
@@ -26,7 +26,7 @@
     <p>If the app does not open automatically, tap below.</p>
 
     <a id="fallback"
-       href="ir.codecomp.dangodong://auth"
+       href="ir.codecomp.dangodong://email-confirmation"
        style="display:none">
       Open the app
     </a>
