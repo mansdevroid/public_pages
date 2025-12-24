@@ -1,17 +1,40 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Account confirmed</title>
-  </head>
+    <script>
+      window.onload = function () {
+        // Query parameters (?access_token=XYZ&refresh_token=ABC)
+        const query = window.location.search || "";
 
+        // Fragment (#access_token=XYZ&refresh_token=ABC)
+        const hash = window.location.hash || "";
+
+        // Build deep link dynamically
+        const deepLink = "ir.codecomp.dangodong://auth" + query + hash;
+
+        // Set the link href
+        const btn = document.getElementById("openApp");
+        btn.href = deepLink;
+      };
+    </script>
+  </head>
   <body style="font-family: sans-serif; text-align: center; margin-top: 80px;">
     <h1>✅ Registration successful</h1>
-    <p>If the app does not open automatically, tap below.</p>
+    <p>Tap the button below to open the app and complete login:</p>
 
-    <a id="fallback"
-       href="ir.codecomp.dangodong://email-confirmation"
-       style="display:none">
+    <a id="openApp"
+       href="#"
+       style="
+         display:inline-block;
+         font-size:18px;
+         padding:12px 24px;
+         background:#3ecf8e;
+         color:white;
+         text-decoration:none;
+         border-radius:6px;"
+    >
       Open the app
     </a>
   </body>
