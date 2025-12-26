@@ -2,47 +2,50 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Account confirmed</title>
-    <script>
-      window.onload = function () {
-        // Query parameters (?access_token=XYZ&refresh_token=ABC)
-        const query = window.location.search || "";
-
-        // Fragment (#access_token=XYZ&refresh_token=ABC)
-        const hash = window.location.hash || "";
-
-        // Build deep link dynamically
-        const deepLink = "ir.codecomp.dangodong://auth" + query + hash;
-
-        // Set the link href
-        const btn = document.getElementById("openApp");
-        btn.href = deepLink;
-      };
-    </script>
+    <title>Account action</title>
   </head>
   <body style="font-family: sans-serif; text-align: center; margin-top: 80px;">
-    <h1>✅ Registration successful</h1>
-    <p>Tap the button below to open the app and complete login</p>
+    <h1 id="title">✅ Registration successful</h1>
+    <p id="message">Tap the button below to open the app and complete login</p>
 
-      <button
-        style="
-          font-size:18px;
-          padding:12px 24px;
-          background:#3ecf8e;
-          color:white;
-          border:none;
-          border-radius:6px;
-        "
-        onclick="openApp()"
-      >
+    <button
+      style="
+        font-size:18px;
+        padding:12px 24px;
+        background:#3ecf8e;
+        color:white;
+        border:none;
+        border-radius:6px;
+      "
+      onclick="openApp()"
+    >
       Open the app
     </button>
+
     <script>
+      function getAllParams() {
+        const params = new URLSearchParams(
+          window.location.search + window.location.hash.replace("#", "&")
+        );
+        return params;
+      }
+
+      const params = getAllParams();
+      const type = params.get("type");
+
+      let deepLinkBase = "ir.codecomp.dangodong://email-confirmation";
+      if (type === "recovery") {
+        document.getElementById("title").textContent = "🔐 Password reset";
+        document.getElementById("message").textContent =
+          "Tap the button below to open the app and reset your password";
+        deepLinkBase = "ir.codecomp.dangodong://reset-password";
+      }
+
       function openApp() {
         const query = window.location.search || "";
         const hash = window.location.hash || "";
-        const deepLink = "ir.codecomp.dangodong://email-confirmation" + query + hash;
-    
+        const deepLink = deepLinkBase + query + hash;
+
         window.location.href = deepLink;
       }
     </script>
