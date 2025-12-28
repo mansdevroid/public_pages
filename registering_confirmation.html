@@ -32,6 +32,7 @@
 
       const params = getAllParams();
       const type = params.get("type");
+      const error_desc = params.get("error_description");
 
       let deepLinkBase = "ir.codecomp.dangodong://email-confirmation";
       if (type === "recovery") {
@@ -39,6 +40,10 @@
         document.getElementById("message").textContent =
           "Tap the button below to open the app and reset your password";
         deepLinkBase = "ir.codecomp.dangodong://reset-password";
+      }
+
+      if (error_desc) {
+          document.getElementById("message").textContent = error_desc
       }
 
       function openApp() {
