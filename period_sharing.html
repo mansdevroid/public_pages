@@ -66,42 +66,45 @@
         const rawFallback = urlParams.get('fallback');
     
         if (rawDeepLink && rawFallback) {
-            // 1. Split the scheme from the rest
-            // rawDeepLink: ir.codecomp.dangodong://join-period?id=...
-            const parts = rawDeepLink.split("://");
-            const scheme = parts[0];
-            const hostAndArgs = parts[1]; 
+            // 1. Cleanly parse the deep link
+            // From: ir.codecomp.dangodong://join-period?id=...
+            const protocolParts = rawDeepLink.split("://");
+            const scheme = protocolParts[0];
+            const path = protocolParts[1];
     
-            // 2. Extract package name from fallback
+            // 2. Identify Package
             const pkgMatch = rawFallback.match(/[?&]id=([^&#]+)/);
             const packageName = pkgMatch ? pkgMatch[1] : "ir.codecomp.dangodong";
     
-            // 3. Build the Intent string
-            // We do NOT encode hostAndArgs here because it already contains 
-            // the necessary '?' and '&' for the app to parse.
-            // However, we ensure the fallback is fully encoded.
-            const intentUrl = `intent://${hostAndArgs}#Intent;scheme=${scheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(rawFallback)};end`;
+            // 3. Construct the Intent URL
+            // We use S.browser_fallback_url but we also add a 'package' flag
+            // and ensure the path is correctly placed.
+            const intentUrl = `intent://${path}#Intent;scheme=${scheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(rawFallback)};end`;
     
-            // Update the manual button
-            const manualLink = document.getElementById('manual-link');
-            manualLink.href = intentUrl;
+            // Update the manual button immediately
+            const btn = document.getElementById('manual-link');
+            btn.href = intentUrl;
     
-            // 4. THE MAGIC TRICK: User Gesture Requirement
-            // Modern Chrome often blocks window.location.href redirects to Intents
-            // unless they are triggered by a click.
-            
-            // Try the auto-redirect
-            window.location.href = intentUrl;
-    
-            // Fallback: If still on page after 2 seconds, show the button clearly
+            // 4. Attempt Redirect with a slight delay
+            // This sometimes bypasses Chrome's immediate "auto-fallback" logic
             setTimeout(() => {
-                document.getElementById('loading-state').innerHTML = `
-                    <div style="padding: 20px; border: 2px solid #007bff; border-radius: 8px;">
-                        <h3>Ready to join?</h3>
-                        <a href="${intentUrl}" class="button" style="background:#007bff; color:white; padding:15px 25px; text-decoration:none; border-radius:5px; display:inline-block;">Open in DangoDong App</a>
+                window.location.href = intentUrl;
+            }, 500);
+    
+            // 5. If they are still here after 3 seconds, the auto-redirect definitely failed
+            // Show the button prominently because Chrome blocked the auto-launch.
+            setTimeout(() => {
+                document.getElementById('loading-state').style.display = 'none';
+                const errorDiv = document.getElementById('error-state');
+                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = `
+                    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h2 style="color: #333;">Open in DangoDong</h2>
+                        <p>Tap below to continue to your shared period.</p>
+                        <a href="${intentUrl}" style="display: inline-block; background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;">Open App</a>
                     </div>
                 `;
-            }, 2000);
+            }, 2500);
         }
     </script>
 </body>
