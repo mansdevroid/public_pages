@@ -61,40 +61,32 @@
     </div>
 
     <script>
-        // 1. Extract parameters safely out of the current browser URL
         const urlParams = new URLSearchParams(window.location.search);
-        const rawDeepLink = urlParams.get('deeplink'); // Expected: "myapp://profile/123"
-        const rawFallback = urlParams.get('fallback'); // Expected: Play store link
-
-        if (!rawDeepLink || !rawFallback) {
-            document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('error-state').style.display = 'block';
-        } else {
-            // 2. Parse out the scheme and path/query properties out of the dynamic deeplink
-            // Example: myapp://profile/123 -> Scheme: "myapp", Intent Path: "profile/123"
-            const urlObj = new URL(rawDeepLink.replace("://", "://placeholder-host/"));
-            const appScheme = rawDeepLink.split("://")[0];
-            
-            // Clean up path data to extract everything after the custom scheme divider
-            const intentPathAndQuery = rawDeepLink.substring(rawDeepLink.indexOf("://") + 3);
-
-            // 3. Extract your package name out of the fallback Play Store link automatically
-            let packageName = "";
+        
+        // URLSearchParams.get automatically decodes %26 back to &
+        const rawDeepLink = urlParams.get('deeplink'); 
+        const rawFallback = urlParams.get('fallback');
+    
+        if (rawDeepLink && rawFallback) {
+            // 1. Extract Package Name from fallback
             const pkgMatch = rawFallback.match(/[?&]id=([^&#]+)/);
-            if (pkgMatch) {
-                packageName = pkgMatch[1];
-            }
-
-            // 4. Construct the Android Intent URL with the Dynamic Web Fallback embedded
-            // Format constraint: intent://[path]#Intent;scheme=[scheme];package=[package];S.browser_fallback_url=[fallback];end
-            const intentUrl = `intent://${intentPathAndQuery}#Intent;scheme=${appScheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(rawFallback)};end`;
-
-            // Bind fallback click target just in case automatic window execution fails
-            const manualAnchor = document.getElementById('manual-link');
-            manualAnchor.href = intentUrl;
-
-            // 5. Fire off the intent immediately
+            const packageName = pkgMatch ? pkgMatch[1] : "";
+    
+            // 2. Split Scheme from Path
+            // Input: ir.codecomp.dangodong://join-period?id=123...
+            const parts = rawDeepLink.split("://");
+            const scheme = parts[0];
+            const pathAndQuery = parts[1];
+    
+            // 3. Build Intent
+            // S.browser_fallback_url must be the FULL encoded fallback
+            const intentUrl = `intent://${pathAndQuery}#Intent;scheme=${scheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(rawFallback)};end`;
+    
+            // Redirect
             window.location.href = intentUrl;
+            
+            // Manual link update
+            document.getElementById('manual-link').href = intentUrl;
         }
     </script>
 </body>
