@@ -30,20 +30,32 @@
     const openButton = document.getElementById('open-button');
 
     openButton.addEventListener('click', () => {
-        if (!rawDeepLink || !rawFallback) return;
+        e.preventDefault();
 
-        // 1. Capture the time of the click
-        const start = Date.now();
-
-        // 2. Attempt to open the app using the raw custom scheme
-        window.location.href = rawDeepLink;
-
-        // 3. Set a timeout to check if the user is still on this page
+        if (!deepLink || !playStore) return;
+    
+        // 1. Hardcode your app identifiers to ensure no parsing mistakes
+        const scheme = "ir.codecomp.dangodong";
+        const host = "join-period";
+        const packageName = "ir.codecomp.dangodong";
+    
+        // 2. THE CORRECT CHROME INTENT SYNTAX:
+        // Structure: intent://[host]#Intent;scheme=[scheme];package=[package];...;end;
+        // We pass the full link inside S.full_link to safeguard the query variables from Android 9's parser.
+        const intentUrl = `intent://${host}#Intent;scheme=${scheme};package=${packageName};S.full_link=${encodeURIComponent(deepLink)};S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
+    
+        let pageHidden = false;
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) pageHidden = true;
+        });
+    
+        // Fire the intent window launch
+        window.location.href = intentUrl;
+    
+        // Fallback tracker to Play Store if app isn't installed
         setTimeout(() => {
-            // If the user is still on this page after 2 seconds, 
-            // it means the app failed to open.
-            if (Date.now() - start < 2500) {
-                window.location.href = rawFallback;
+            if (!pageHidden) {
+                window.location.href = playStore;
             }
         }, 2000);
     });
