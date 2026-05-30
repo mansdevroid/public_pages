@@ -30,20 +30,38 @@
     const openButton = document.getElementById('open-button');
 
     openButton.addEventListener('click', () => {
-        if (!rawDeepLink || !rawFallback) return;
+        e.preventDefault();
 
-        // 1. Capture the time of the click
-        const start = Date.now();
-
-        // 2. Attempt to open the app using the raw custom scheme
-        window.location.href = rawDeepLink;
-
-        // 3. Set a timeout to check if the user is still on this page
+        if (!deepLink || !playStore) return;
+    
+        // 1. Separate the scheme and the host path
+        // From: ir.codecomp.dangodong://join-period?id=...
+        const parts = deepLink.split("://");
+        const scheme = parts[0];
+        // Get just "join-period" without any parameters
+        const hostOnly = parts[1].split("?")[0]; 
+    
+        // 2. Extract the package name safely from the fallback
+        const pkgMatch = playStore.match(/[?&]id=([^&#]+)/);
+        const packageName = pkgMatch ? pkgMatch[1] : "ir.codecomp.dangodong";
+    
+        // 3. THE FIX: Construct an intent that passes the full deep link as a String Extra
+        // Notice that intent://join-period has NO ampersands to trip up Android 9.
+        // The entire multi-parameter link is safely sealed inside encodeURIComponent()
+        const intentUrl = `intent://${hostOnly}#Intent;scheme=${scheme};package=${packageName};S.full_link=${encodeURIComponent(deepLink)};S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
+    
+        let pageHidden = false;
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) pageHidden = true;
+        });
+    
+        // Launch the intent
+        window.location.href = intentUrl;
+    
+        // Fallback tracker
         setTimeout(() => {
-            // If the user is still on this page after 2 seconds, 
-            // it means the app failed to open.
-            if (Date.now() - start < 2500) {
-                window.location.href = rawFallback;
+            if (!pageHidden) {
+                window.location.href = playStore;
             }
         }, 2000);
     });
