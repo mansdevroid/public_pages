@@ -62,31 +62,46 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        
-        // URLSearchParams.get automatically decodes %26 back to &
         const rawDeepLink = urlParams.get('deeplink'); 
         const rawFallback = urlParams.get('fallback');
     
         if (rawDeepLink && rawFallback) {
-            // 1. Extract Package Name from fallback
-            const pkgMatch = rawFallback.match(/[?&]id=([^&#]+)/);
-            const packageName = pkgMatch ? pkgMatch[1] : "";
-    
-            // 2. Split Scheme from Path
-            // Input: ir.codecomp.dangodong://join-period?id=123...
+            // 1. Split the scheme from the rest
+            // rawDeepLink: ir.codecomp.dangodong://join-period?id=...
             const parts = rawDeepLink.split("://");
             const scheme = parts[0];
-            const pathAndQuery = parts[1];
+            const hostAndArgs = parts[1]; 
     
-            // 3. Build Intent
-            // S.browser_fallback_url must be the FULL encoded fallback
-            const intentUrl = `intent://${pathAndQuery}#Intent;scheme=${scheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(rawFallback)};end`;
+            // 2. Extract package name from fallback
+            const pkgMatch = rawFallback.match(/[?&]id=([^&#]+)/);
+            const packageName = pkgMatch ? pkgMatch[1] : "ir.codecomp.dangodong";
     
-            // Redirect
-            window.location.href = intentUrl;
+            // 3. Build the Intent string
+            // We do NOT encode hostAndArgs here because it already contains 
+            // the necessary '?' and '&' for the app to parse.
+            // However, we ensure the fallback is fully encoded.
+            const intentUrl = `intent://${hostAndArgs}#Intent;scheme=${scheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(rawFallback)};end`;
+    
+            // Update the manual button
+            const manualLink = document.getElementById('manual-link');
+            manualLink.href = intentUrl;
+    
+            // 4. THE MAGIC TRICK: User Gesture Requirement
+            // Modern Chrome often blocks window.location.href redirects to Intents
+            // unless they are triggered by a click.
             
-            // Manual link update
-            document.getElementById('manual-link').href = intentUrl;
+            // Try the auto-redirect
+            window.location.href = intentUrl;
+    
+            // Fallback: If still on page after 2 seconds, show the button clearly
+            setTimeout(() => {
+                document.getElementById('loading-state').innerHTML = `
+                    <div style="padding: 20px; border: 2px solid #007bff; border-radius: 8px;">
+                        <h3>Ready to join?</h3>
+                        <a href="${intentUrl}" class="button" style="background:#007bff; color:white; padding:15px 25px; text-decoration:none; border-radius:5px; display:inline-block;">Open in DangoDong App</a>
+                    </div>
+                `;
+            }, 2000);
         }
     </script>
 </body>
