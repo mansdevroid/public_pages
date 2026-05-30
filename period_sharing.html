@@ -34,30 +34,25 @@
 
         if (!deepLink || !playStore) return;
     
-        // 1. Extract the host path (e.g., "join-period")
-        const parts = deepLink.split("://");
-        const scheme = parts[0]; // "ir.codecomp.dangodong"
-        const hostOnly = parts[1].split("?")[0]; // "join-period"
+        // 1. Hardcode your app identifiers to ensure no parsing mistakes
+        const scheme = "ir.codecomp.dangodong";
+        const host = "join-period";
+        const packageName = "ir.codecomp.dangodong";
     
-        // 2. Extract the package name safely from the Play Store URL
-        const pkgMatch = playStore.match(/[?&]id=([^&#]+)/);
-        const packageName = pkgMatch ? pkgMatch[1] : "ir.codecomp.dangodong";
-    
-        // 3. THE FIXED INTENT SYNTAX:
-        // - Front of URI: intent://join-period
-        // - Scheme block: scheme=ir.codecomp.dangodong
-        // - Extra payload: S.full_link hides the complex & symbols safely inside a string parameter
-        const intentUrl = `intent://${hostOnly}#Intent;scheme=${scheme};package=${packageName};S.full_link=${encodeURIComponent(deepLink)};S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
+        // 2. THE CORRECT CHROME INTENT SYNTAX:
+        // Structure: intent://[host]#Intent;scheme=[scheme];package=[package];...;end;
+        // We pass the full link inside S.full_link to safeguard the query variables from Android 9's parser.
+        const intentUrl = `intent://${host}#Intent;scheme=${scheme};package=${packageName};S.full_link=${encodeURIComponent(deepLink)};S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
     
         let pageHidden = false;
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) pageHidden = true;
         });
     
-        // Launch the app
+        // Fire the intent window launch
         window.location.href = intentUrl;
     
-        // Fallback tracker
+        // Fallback tracker to Play Store if app isn't installed
         setTimeout(() => {
             if (!pageHidden) {
                 window.location.href = playStore;
