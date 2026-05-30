@@ -30,34 +30,31 @@
     const openButton = document.getElementById('open-button');
 
     openButton.addEventListener('click', () => {
-        e.preventDefault();
+        if (!deepLink || !playStore) {
+            alert("Invalid link parameters.");
+            return;
+        }
 
-        if (!deepLink || !playStore) return;
-    
-        // 1. Hardcode your app identifiers to ensure no parsing mistakes
-        const scheme = "ir.codecomp.dangodong";
-        const host = "join-period";
-        const packageName = "ir.codecomp.dangodong";
-    
-        // 2. THE CORRECT CHROME INTENT SYNTAX:
-        // Structure: intent://[host]#Intent;scheme=[scheme];package=[package];...;end;
-        // We pass the full link inside S.full_link to safeguard the query variables from Android 9's parser.
-        const intentUrl = `intent://${host}#Intent;scheme=${scheme};package=${packageName};S.full_link=${encodeURIComponent(deepLink)};S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
-    
+        // 2. Track if the user leaves the page
         let pageHidden = false;
-        document.addEventListener("visibilitychange", () => {
+        const onVisibilityChange = () => {
             if (document.hidden) pageHidden = true;
-        });
-    
-        // Fire the intent window launch
-        window.location.href = intentUrl;
-    
-        // Fallback tracker to Play Store if app isn't installed
+        };
+        document.addEventListener("visibilitychange", onVisibilityChange);
+
+        // 3. Try to open the app
+        window.location.href = deepLink;
+
+        // 4. Fallback Logic:
+        // Wait 1.5 seconds. If the page is still visible, the app didn't open.
         setTimeout(() => {
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+            
             if (!pageHidden) {
+                // App not found, redirect to Play Store
                 window.location.href = playStore;
             }
-        }, 2000);
+        }, 1500);
     });
 </script>
 
