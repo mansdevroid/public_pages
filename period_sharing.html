@@ -34,26 +34,27 @@
 
         if (!deepLink || !playStore) return;
     
-        // 1. Separate the raw scheme from the parameters
-        // From: ir.codecomp.dangodong://join-period?id=07b1afbf-...
-        const baseLinkWithoutParams = deepLink.split("?")[0]; 
-        // This equals exactly: "ir.codecomp.dangodong://join-period"
+        // 1. Extract the host path (e.g., "join-period")
+        const parts = deepLink.split("://");
+        const scheme = parts[0]; // "ir.codecomp.dangodong"
+        const hostOnly = parts[1].split("?")[0]; // "join-period"
     
-        // 2. Extract the package name safely
+        // 2. Extract the package name safely from the Play Store URL
         const pkgMatch = playStore.match(/[?&]id=([^&#]+)/);
         const packageName = pkgMatch ? pkgMatch[1] : "ir.codecomp.dangodong";
     
-        // 3. THE FIXED INTENT:
-        // We leave the root intent blank (intent://#Intent) so Chrome maps purely to the package name,
-        // and we bundle the absolute, un-chopped base link as the explicit scheme element.
-        const intentUrl = `intent://#Intent;scheme=${encodeURIComponent(baseLinkWithoutParams)};package=${packageName};S.full_link=${encodeURIComponent(deepLink)};S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
+        // 3. THE FIXED INTENT SYNTAX:
+        // - Front of URI: intent://join-period
+        // - Scheme block: scheme=ir.codecomp.dangodong
+        // - Extra payload: S.full_link hides the complex & symbols safely inside a string parameter
+        const intentUrl = `intent://${hostOnly}#Intent;scheme=${scheme};package=${packageName};S.full_link=${encodeURIComponent(deepLink)};S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
     
         let pageHidden = false;
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) pageHidden = true;
         });
     
-        // Launch the intent
+        // Launch the app
         window.location.href = intentUrl;
     
         // Fallback tracker
